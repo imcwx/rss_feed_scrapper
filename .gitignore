@@ -1,0 +1,14 @@
+# Data dir
+data/
+
+# tracker
+feed_tracker.pickle
+
+# logs
+*.log
+
+# idea
+.idea/
+
+
+
