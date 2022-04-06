@@ -99,7 +99,7 @@ def update_tracker(rss_feed, feed_tracker, feed_name):
     }
 
 
-def save_data(data, init=False):
+def save_data(data, feed_tracker, init=False):
     # Save the data entries
     if init:
         # Initialize data path if not exist
@@ -126,6 +126,13 @@ def save_data(data, init=False):
         # Check Feed Entries
         new_entries = rss_feed.entries
         if new_entries:
+            # When there is new, update tracker, record and pull data
+            num_entries = len(new_entries)
+            logger.info("{} has {} new entries".format(feed_name, num_entries))
+
+            # Update Tracker
+            update_tracker(rss_feed, feed_tracker, feed_name)
+
             # Update feed records
             df_new_entries = pd.DataFrame(new_entries)
             df_new_entries.to_csv(record_path, mode='a', header=False)
@@ -136,6 +143,7 @@ def save_data(data, init=False):
                 request = urllib.request.Request(url)
                 filename = os.path.basename(url)
                 file_path = os.path.join(data_feed_path, f"{filename}.html")
+                logger.info(f"Entry filename: {filename}")
                 try:
                     response = urllib.request.urlopen(request)
                     data_entry = response.readlines()
@@ -144,6 +152,9 @@ def save_data(data, init=False):
                         f.writelines(data_string)
                 except:
                     logger.error("something wrong")
+        else:
+            # No new entries
+            logger.info("%s has 0 new entries" % feed_name)
 
 
 def main():
@@ -156,26 +167,13 @@ def main():
         data, feed_tracker = init_feed(straits_time_rss_feed)
         with open(TRACKER_PATH, 'wb') as handle:
             pickle.dump(feed_tracker, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        save_data(data, init=True)
+        save_data(data, feed_tracker, init=True)
 
     # Loop and update each feed.
     while True:
         logger.info("Get Feed Update")
         new_data = get_feed_update(feed_tracker)
-        for feed_name, rss_feed in new_data.items():
-            new_entries = rss_feed.entries
-
-            if new_entries:
-                # When there is new, update tracker, record and pull data
-                num_entries = len(new_entries)
-                logger.info("{} has {} new entries".format(feed_name, num_entries))
-
-                update_tracker(rss_feed, feed_tracker, feed_name)
-                # pretty_dict(feed_tracker[feed_name])
-                save_data(new_data, init=False)
-            else:
-                # No new entries
-                logger.info("%s has 0 new entries" % feed_name)
+        save_data(new_data, feed_tracker, init=False)
         logger.info(f'--------wait {SLEEP_DURATION} seconds before checking again-------')
         time.sleep(SLEEP_DURATION)
 
