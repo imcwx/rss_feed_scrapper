@@ -141,17 +141,18 @@ def save_data(data, feed_tracker, init=False):
             for entry in new_entries:
                 url = entry.get('link')
                 request = urllib.request.Request(url)
-                filename = os.path.basename(url)
-                file_path = os.path.join(data_feed_path, f"{filename}.html")
-                logger.info(f"Entry filename: {filename}")
+                basename = os.path.basename(url)
+                file_path = os.path.join(data_feed_path, f"{basename}.html")
+                logger.info(f"Entry basename: {basename}")
                 try:
                     response = urllib.request.urlopen(request)
                     data_entry = response.readlines()
                     data_string = [i.decode('utf-8') for i in data_entry]
                     with open(file_path, "w") as f:
                         f.writelines(data_string)
-                except:
-                    logger.error("something wrong")
+                except Exception as e:
+                    logger.exception("Error, cannot retrieve data")
+                    logger.error(f"url : {url}")
         else:
             # No new entries
             logger.info("%s has 0 new entries" % feed_name)
