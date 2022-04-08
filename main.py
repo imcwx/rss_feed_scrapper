@@ -101,8 +101,8 @@ def get_feed_update(feed_tracker, feed_update='last_modified', last_etag=False):
         elif feed_update == 'last_etag':
             new_feed = get_feed(trackers.get('rss_feed_link'), etag=trackers.get('etag'))
         else:
-            logger.error("Feed update is not last_modified or last_etag, please implement or choose a method.")
-            exit()
+            logger.warning("Feed update is not last_modified or last_etag, please implement or choose a method.")
+            new_feed = get_feed(trackers.get('rss_feed_link'))
         new_data[feed_name] = new_feed
     return new_data
 
